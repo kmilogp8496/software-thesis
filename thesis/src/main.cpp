@@ -26,11 +26,6 @@ void setup()
 
 void loop()
 {
-  delay(2000);
-  Serial.println("Serial sending data" + String(millis()));
-  JsonDocument doc;
-  doc["name"] = "ESP32";
-  doc["id"] = 7;
-  sendGetRequest("/api/things/7");
-  sendPostRequest("/api/things", doc);
+  delay(10000);
+  sendGetRequest("/api/things/" + String(SENSOR_ID));
 }
