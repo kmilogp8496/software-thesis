@@ -45,7 +45,7 @@ void login() {
 void handleResponse(HTTPClient* http, int httpResponseCode) {
     Serial.println(httpResponseCode);
     if (httpResponseCode > 0) {
-        if (httpResponseCode == HTTP_CODE_UNAUTHORIZED) {
+        if (httpResponseCode == HTTP_CODE_UNAUTHORIZED || httpResponseCode == HTTP_CODE_FORBIDDEN) {
             Serial.println("Unauthorized");
             http->end();
             login();
