@@ -14,7 +14,7 @@ HTTPClient http;
     bool https = false;
 #endif
 
-void login() {
+void platformLogin() {
     JsonDocument doc;
     doc["id"] = SENSOR_ID;
     doc["username"] = SENSOR_NAME;
@@ -41,14 +41,13 @@ void login() {
     Serial.println(authToken);
 }
 
-
 void handleResponse(HTTPClient* http, int httpResponseCode) {
     Serial.println(httpResponseCode);
     if (httpResponseCode > 0) {
         if (httpResponseCode == HTTP_CODE_UNAUTHORIZED || httpResponseCode == HTTP_CODE_FORBIDDEN) {
             Serial.println("Unauthorized");
             http->end();
-            login();
+            platformLogin();
             return;
         }
 
@@ -83,4 +82,9 @@ void sendPostRequest(String path, JsonDocument& doc) {
     serializeJson(doc, payload);
 
     handleResponse(&http, http.POST(payload));
+}
+
+void platformPushData(JsonDocument &doc)
+{
+    sendPostRequest("/api/things", doc);
 }
