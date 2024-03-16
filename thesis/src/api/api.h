@@ -2,7 +2,8 @@
 #include <ArduinoJson.h>
 #include "CACertificate.h"
 #include "Environment.h"
+#include "IoTPlatformSensor.h"
 
-void sendGetRequest(String path);
+void platformLogin();
 
-void sendPostRequest(String path, JsonDocument& doc);
+void platformPushData(JsonDocument& doc);
