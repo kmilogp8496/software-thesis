@@ -17,8 +17,6 @@
 
 #endif
 
-void platformSetup();
-
 void platformLogin();
 
 void platformPushData(JsonDocument& doc);

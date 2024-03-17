@@ -1,47 +1,68 @@
 #include "api.h"
 
-CookieJar cookieJar;
-String authToken;
-HTTPClient http;
+String authToken = "";
 
 #ifdef CA_CERTIFICATE
-WiFiClientSecure client;
 bool https = true;
 #else
-WiFiClient client;
 bool https = false;
 #endif
 
 void platformLogin()
 {
-    JsonDocument doc;
-    doc["id"] = SENSOR_ID;
-    doc["username"] = SENSOR_NAME;
-    doc["password"] = SENSOR_PASSWORD;
-
-    const char *headers[] = {"Set-Cookie"};
-    http.collectHeaders(headers, sizeof(headers) / sizeof(headers[0]));
-
-    http.begin(client, API_URL, API_PORT, "/api/things/login", https);
-    String payload;
-
-    serializeJson(doc, payload);
-    int httpResponseCode = http.POST(payload);
-
-    Serial.println("Login response code: " + String(httpResponseCode));
-
-    if (httpResponseCode <= 0)
+#ifdef CA_CERTIFICATE
+    WiFiClientSecure *client = new WiFiClientSecure;
+#else
+    WiFiClient *client = new WiFiClient;
+#endif
+    if (client)
     {
-        Serial.print("Error: ");
-        Serial.println(httpResponseCode);
-        http.end();
-        return;
+        client->setCACert(CA_CERTIFICATE);
+
+        {
+            // Add a scoping block for HTTPClient http to make sure it is destroyed before WiFiClientSecure *client is
+            HTTPClient http;
+
+            if (http.begin(*client, API_URL, API_PORT, "/api/things/login", https))
+            { // HTTPS
+                JsonDocument doc;
+                doc["id"] = SENSOR_ID;
+                doc["username"] = SENSOR_NAME;
+                doc["password"] = SENSOR_PASSWORD;
+                const char *headers[] = {"Set-Cookie"};
+                http.collectHeaders(headers, sizeof(headers) / sizeof(headers[0]));
+
+                String payload;
+
+                serializeJson(doc, payload);
+                int httpResponseCode = http.POST(payload);
+
+                Serial.println("Login response code: " + String(httpResponseCode));
+
+                if (httpResponseCode > 0)
+                {
+                    String cookie = http.header("Set-Cookie");
+
+                    authToken = cookie.substring(cookie.indexOf("=") + 1, cookie.indexOf(";")) + ";";
+                } else
+                {
+                    Serial.print("Error: ");
+                    Serial.println(httpResponseCode);
+                }
+                http.end();
+            }
+            else
+            {
+                Serial.printf("[HTTPS] Unable to connect\n");
+            }
+        }
+
+        delete client;
     }
-    http.end();
-
-    String cookie = http.header("Set-Cookie");
-
-    authToken = cookie.substring(cookie.indexOf("=") + 1, cookie.indexOf(";")) + ";";
+    else
+    {
+        Serial.println("Unable to create client");
+    }
 }
 
 void handleResponse(HTTPClient *http, int httpResponseCode)
@@ -74,36 +95,66 @@ void handleResponse(HTTPClient *http, int httpResponseCode)
 
 void sendGetRequest(String path)
 {
-    http.begin(client, API_URL, API_PORT, path, https);
+#ifdef CA_CERTIFICATE
+    WiFiClientSecure *client = new WiFiClientSecure;
+#else
+    WiFiClient *client = new WiFiClient;
+#endif
+    if (client)
+    {
+        client->setCACert(CA_CERTIFICATE);
 
-    http.addHeader("Cookie", AUTH_TOKEN_NAME + authToken);
+        {
+            HTTPClient http;
 
-    handleResponse(&http, http.GET());
+            http.begin(*client, API_URL, API_PORT, path, https);
+
+            http.addHeader("Cookie", AUTH_TOKEN_NAME + authToken);
+
+            handleResponse(&http, http.GET());
+        }
+
+        delete client;
+    }
+    else
+    {
+        Serial.println("Unable to create client");
+    }
 }
 
 void sendPostRequest(String path, JsonDocument &doc)
 {
-    String payload;
+#ifdef CA_CERTIFICATE
+    WiFiClientSecure *client = new WiFiClientSecure;
+#else
+    WiFiClient *client = new WiFiClient;
+#endif
+    if (client)
+    {
+        client->setCACert(CA_CERTIFICATE);
 
-    // Specify the target URL
-    http.begin(client, API_URL, API_PORT, path, https);
-    http.addHeader("Cookie", AUTH_TOKEN_NAME + authToken);
+        {
+            HTTPClient http;
+            String payload;
 
-    serializeJson(doc, payload);
+            // Specify the target URL
+            http.begin(*client, API_URL, API_PORT, path, https);
+            http.addHeader("Cookie", AUTH_TOKEN_NAME + authToken);
 
-    handleResponse(&http, http.POST(payload));
+            serializeJson(doc, payload);
+
+            handleResponse(&http, http.POST(payload));
+        }
+
+        delete client;
+    }
+    else
+    {
+        Serial.println("Unable to create client");
+    }
 }
 
 void platformPushData(JsonDocument &doc)
 {
     sendPostRequest("/api/things", doc);
-}
-
-void platformSetup()
-{
-    if (https)
-    {
-        client.setCACert(CA_CERTIFICATE);
-    }
-    platformLogin();
 }

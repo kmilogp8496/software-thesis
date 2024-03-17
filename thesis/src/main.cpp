@@ -11,7 +11,7 @@ Adafruit_BME280 bme; // I2C
 
 void setup()
 {
-  Serial.begin(230400);
+  Serial.begin(921600);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED)
@@ -38,7 +38,7 @@ void setup()
     while (1);
   }
 
-  platformSetup();
+  platformLogin();
 }
 
 void loop()
