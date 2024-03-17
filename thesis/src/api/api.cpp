@@ -28,10 +28,14 @@ void platformLogin()
     serializeJson(doc, payload);
     int httpResponseCode = http.POST(payload);
 
+    Serial.println("Login response code: " + String(httpResponseCode));
+
     if (httpResponseCode <= 0)
     {
         Serial.print("Error: ");
         Serial.println(httpResponseCode);
+        http.end();
+        return;
     }
     http.end();
 
@@ -55,7 +59,7 @@ void handleResponse(HTTPClient *http, int httpResponseCode)
 
         String response = http->getString();
         // Successful response
-        Serial.println(response);
+        Serial.println("Push response: " + response);
     }
     else
     {

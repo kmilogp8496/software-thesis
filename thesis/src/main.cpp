@@ -28,8 +28,6 @@ void setup()
 
   Serial.println("Serial connected");
 
-  Serial.println(F("BME280 test"));
-
   bool status;
 
   // default settings
