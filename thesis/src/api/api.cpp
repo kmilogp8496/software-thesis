@@ -2,34 +2,34 @@
 
 CookieJar cookieJar;
 String authToken;
-
 HTTPClient http;
 
 #ifdef CA_CERTIFICATE
-    WiFiClientSecure client;
-    client.setCACert(CA_CERTIFICATE);
-    bool https = true;
+WiFiClientSecure client;
+bool https = true;
 #else
-    WiFiClient client;
-    bool https = false;
+WiFiClient client;
+bool https = false;
 #endif
 
-void platformLogin() {
+void platformLogin()
+{
     JsonDocument doc;
     doc["id"] = SENSOR_ID;
     doc["username"] = SENSOR_NAME;
     doc["password"] = SENSOR_PASSWORD;
 
-    const char* headers[] = {"Set-Cookie"};
-    http.collectHeaders(headers, sizeof(headers)/ sizeof(headers[0]));
-    
+    const char *headers[] = {"Set-Cookie"};
+    http.collectHeaders(headers, sizeof(headers) / sizeof(headers[0]));
+
     http.begin(client, API_URL, API_PORT, "/api/things/login", https);
     String payload;
 
     serializeJson(doc, payload);
     int httpResponseCode = http.POST(payload);
 
-    if (httpResponseCode <= 0) {
+    if (httpResponseCode <= 0)
+    {
         Serial.print("Error: ");
         Serial.println(httpResponseCode);
     }
@@ -38,13 +38,15 @@ void platformLogin() {
     String cookie = http.header("Set-Cookie");
 
     authToken = cookie.substring(cookie.indexOf("=") + 1, cookie.indexOf(";")) + ";";
-    Serial.println(authToken);
 }
 
-void handleResponse(HTTPClient* http, int httpResponseCode) {
+void handleResponse(HTTPClient *http, int httpResponseCode)
+{
     Serial.println(httpResponseCode);
-    if (httpResponseCode > 0) {
-        if (httpResponseCode == HTTP_CODE_UNAUTHORIZED || httpResponseCode == HTTP_CODE_FORBIDDEN) {
+    if (httpResponseCode > 0)
+    {
+        if (httpResponseCode == HTTP_CODE_UNAUTHORIZED || httpResponseCode == HTTP_CODE_FORBIDDEN)
+        {
             Serial.println("Unauthorized");
             http->end();
             platformLogin();
@@ -54,7 +56,9 @@ void handleResponse(HTTPClient* http, int httpResponseCode) {
         String response = http->getString();
         // Successful response
         Serial.println(response);
-    } else {
+    }
+    else
+    {
         // Error occurred
         Serial.print("Error: ");
         Serial.println(httpResponseCode);
@@ -64,7 +68,8 @@ void handleResponse(HTTPClient* http, int httpResponseCode) {
     http->end();
 }
 
-void sendGetRequest(String path) {
+void sendGetRequest(String path)
+{
     http.begin(client, API_URL, API_PORT, path, https);
 
     http.addHeader("Cookie", AUTH_TOKEN_NAME + authToken);
@@ -72,7 +77,8 @@ void sendGetRequest(String path) {
     handleResponse(&http, http.GET());
 }
 
-void sendPostRequest(String path, JsonDocument& doc) {
+void sendPostRequest(String path, JsonDocument &doc)
+{
     String payload;
 
     // Specify the target URL
@@ -87,4 +93,13 @@ void sendPostRequest(String path, JsonDocument& doc) {
 void platformPushData(JsonDocument &doc)
 {
     sendPostRequest("/api/things", doc);
+}
+
+void platformSetup()
+{
+    if (https)
+    {
+        client.setCACert(CA_CERTIFICATE);
+        client.connect(API_URL, API_PORT);
+    }
 }

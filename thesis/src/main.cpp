@@ -5,8 +5,7 @@
 #include "api/api.h"
 #include <Adafruit_BME280.h>
 
-// #define REQUEST_INTERVAL 300000
-#define REQUEST_INTERVAL 3000
+#define REQUEST_INTERVAL 300000
 
 Adafruit_BME280 bme; // I2C
 
@@ -41,17 +40,16 @@ void setup()
     while (1);
   }
 
-  Serial.println("-- Default Test --");
-
-  Serial.println();
+  platformSetup();
+  platformLogin();
 }
 
 void loop()
 {
   JsonDocument doc;
-  doc[SENSOR_TEMPERATURA_TEMPERATURA_HABITACION] = bme.readTemperature();
-  doc[SENSOR_HUMEDAD_HUMEDAD_HABITACION] = bme.readHumidity();
-  doc[SENSOR_PRESION_PRESION_HABITACION] = bme.readPressure() / 100.0F;
+  doc[SENSOR_TEMPERATURA_TEMPERATURA_SALON] = bme.readTemperature();
+  doc[SENSOR_HUMEDAD_HUMEDAD_SALON] = bme.readHumidity();
+  doc[SENSOR_PRESION_PRESION_SALON] = bme.readPressure() / 100.0F;
   
   platformPushData(doc);
 
