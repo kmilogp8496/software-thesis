@@ -41,7 +41,6 @@ void setup()
   }
 
   platformSetup();
-  platformLogin();
 }
 
 void loop()

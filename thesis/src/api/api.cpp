@@ -100,6 +100,6 @@ void platformSetup()
     if (https)
     {
         client.setCACert(CA_CERTIFICATE);
-        client.connect(API_URL, API_PORT);
     }
+    platformLogin();
 }
