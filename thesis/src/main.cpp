@@ -14,10 +14,22 @@ void setup()
   Serial.begin(921600);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-  while (WiFi.status() != WL_CONNECTED)
+
+  for (size_t i = 0; i < 60; i++)
   {
-    delay(500);
     Serial.println("Connecting to WiFi..");
+    if (WiFi.status() != WL_CONNECTED)
+    {
+      delay(500);
+    } else {
+      break;
+    }
+
+    if (i == 59)
+    {
+      ESP.restart();
+    }
+    
   }
 
   Serial.println(String("Connected to the WiFi network: ") + String(WIFI_SSID));
@@ -32,10 +44,13 @@ void setup()
 
   // default settings
   // (you can also pass in a Wire library object like &Wire2)
-  status = bme.begin(0x76);  
-  if (!status) {
+  status = bme.begin(0x76);
+  if (!status)
+  {
     Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    while (1);
+    Serial.println("Restarting in 10 seconds");
+    delay(10000);
+    ESP.restart();
   }
 
   platformLogin();
@@ -47,7 +62,7 @@ void loop()
   doc[SENSOR_TEMPERATURA_TEMPERATURA_SALON] = bme.readTemperature();
   doc[SENSOR_HUMEDAD_HUMEDAD_SALON] = bme.readHumidity();
   doc[SENSOR_PRESION_PRESION_SALON] = bme.readPressure() / 100.0F;
-  
+
   platformPushData(doc);
 
   delay(REQUEST_INTERVAL);
