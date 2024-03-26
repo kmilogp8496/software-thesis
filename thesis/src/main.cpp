@@ -38,8 +38,6 @@ void setup()
   Serial.println("IP address set: ");
   Serial.println(WiFi.localIP());
 
-  Serial.println("Serial connected");
-
   bool status;
 
   // default settings
