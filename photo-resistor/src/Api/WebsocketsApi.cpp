@@ -1,107 +1,105 @@
 #include "Api.h"
-#include <ArduinoWebsockets.h>
+#include <WebSocketsClient.h>
 
-using namespace websockets;
 
-WebsocketsClient client;
-WebsocketsEvent status = WebsocketsEvent::ConnectionClosed;
+// callback function for handling messages as JSON
+void handleMessage(JsonDocument doc)
+{
+}
+
+HandleMessageCallback handleMessageCallback = handleMessage;
+
+WebSocketsClient webSocket;
+
+#define USE_SERIAL Serial
+
+void hexdump(const void *mem, uint32_t len, uint8_t cols = 16)
+{
+    const uint8_t *src = (const uint8_t *)mem;
+    USE_SERIAL.printf("\n[HEXDUMP] Address: 0x%08X len: 0x%X (%d)", (ptrdiff_t)src, len, len);
+    for (uint32_t i = 0; i < len; i++)
+    {
+        if (i % cols == 0)
+        {
+            USE_SERIAL.printf("\n[0x%08X] 0x%08X: ", (ptrdiff_t)src, i);
+        }
+        USE_SERIAL.printf("%02X ", *src);
+        src++;
+    }
+    USE_SERIAL.printf("\n");
+}
+
+void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
+{
+    JsonDocument doc;
+
+    switch (type)
+    {
+    case WStype_DISCONNECTED:
+        USE_SERIAL.printf("[WSc] Disconnected!\n");
+        break;
+    case WStype_CONNECTED:
+        USE_SERIAL.printf("[WSc] Connected to url: %s\n", payload);
+        break;
+    case WStype_TEXT:
+        USE_SERIAL.printf("[WSc] get text: %s\n", payload);
+        deserializeJson(doc, payload);
+        handleMessageCallback(doc);
+
+        break;
+    case WStype_BIN:
+        USE_SERIAL.printf("[WSc] get binary length: %u\n", length);
+        hexdump(payload, length);
+
+        break;
+    case WStype_ERROR:
+    case WStype_FRAGMENT_TEXT_START:
+    case WStype_FRAGMENT_BIN_START:
+    case WStype_FRAGMENT:
+    case WStype_FRAGMENT_FIN:
+        break;
+    }
+}
 
 void openWebsocketsConnection()
 {
-    client.addHeader("Cookie", AUTH_TOKEN_NAME + platformGetAuthToken());
+    webSocket.setReconnectInterval(2000);
+
+    String cookieHeader = "Cookie: " + String(AUTH_TOKEN_NAME) + platformGetAuthToken();
+    webSocket.setExtraHeaders(cookieHeader.c_str());
+
+    webSocket.onEvent(webSocketEvent);
+
 #ifdef CA_CERTIFICATE
-    client.setCACert(CA_CERTIFICATE);
-    bool connected = client.connectSecure(API_URL, API_PORT, "/_ws");
+    webSocket.beginSslWithCA(API_URL, API_PORT, "/_ws", CA_CERTIFICATE);
 #else
-    bool connected = client.connect(API_URL, API_PORT, "/_ws");
+    webSocket.begin(API_URL, API_PORT, "/_ws");
 #endif
-
-    Serial.println("Connecting to Websockets...");
-
-    if (connected)
-    {
-        Serial.println("Connected!");
-        client.send("Hello Server");
-    }
-    else
-    {
-        Serial.println("Not Connected!");
-    }
 }
 
-TaskHandle_t Task1;
+TaskHandle_t websocketLoopTaskHandler;
 
-void Task1code(void *pvParameters)
+void websocketsLoop(void *pvParameters)
 {
-
     for (;;)
     {
-        platformWebsocketsLoop();
-        delay(100);
+        webSocket.loop();
+
+        delay(200);
     }
 }
 
-void platformWebsocketsConnect()
+void platformWebsocketsConnect(HandleMessageCallback handleMessageCb)
 {
-    xTaskCreatePinnedToCore(
-        Task1code,        /* Task function. */
-        "Task1",          /* name of task. */
-        10000,            /* Stack size of task */
-        NULL,             /* parameter of the task */
-        tskIDLE_PRIORITY, /* priority of the task */
-        &Task1,           /* Task handle to keep track of created task */
-        0);               /* pin task to core 0 */
+    handleMessageCallback = handleMessageCb;
     openWebsocketsConnection();
 
-    // run callback when messages are received
-    client.onMessage(
-        [&](WebsocketsMessage message)
-        {
-            Serial.print("Got Message: ");
-            Serial.println(message.data());
-            JsonDocument doc;
-            deserializeJson(doc, message.data());
-            Serial.println(doc["value"].as<int>());
-            analogWrite(14, doc["value"].as<int>());
-        });
-
-    client.onEvent(
-        [&](WebsocketsEvent event, String data)
-        {
-            switch (event)
-            {
-            case WebsocketsEvent::ConnectionOpened:
-                Serial.println("Connnection Opened");
-                status = WebsocketsEvent::ConnectionOpened;
-                break;
-            case WebsocketsEvent::ConnectionClosed:
-                Serial.println("Connnection Closed");
-                status = WebsocketsEvent::ConnectionClosed;
-                break;
-            case WebsocketsEvent::GotPing:
-                Serial.println("Got a Ping!");
-                client.send("Pong!");
-                break;
-            case WebsocketsEvent::GotPong:
-                Serial.println("Got a Pong!");
-                break;
-            default:
-                break;
-            }
-        });
-}
-
-void platformWebsocketsLoop()
-{
-    if (status == WebsocketsEvent::ConnectionClosed)
-    {
-        Serial.println("Reconnecting...");
-        openWebsocketsConnection();
-        delay(1000);
-        return;
-    }
-    if (client.available())
-    {
-        client.poll();
-    }
+    xTaskCreatePinnedToCore(
+        websocketsLoop,             /* Task function. */
+        "websocketLoopTaskHandler", /* name of task. */
+        10000,                      /* Stack size of task */
+        NULL,                       /* parameter of the task */
+        tskIDLE_PRIORITY,           /* priority of the task */
+        &websocketLoopTaskHandler,  /* Task handle to keep track of created task */
+        0);                         /* pin task to core 0 */
 }

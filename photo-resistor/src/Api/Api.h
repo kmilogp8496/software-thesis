@@ -17,11 +17,12 @@
 
 #endif
 
+typedef std::function<void(JsonDocument)> HandleMessageCallback;
+
 void platformLogin();
 
 void platformPushData(JsonDocument& doc);
 
-void platformWebsocketsConnect();
-void platformWebsocketsLoop();
+void platformWebsocketsConnect(HandleMessageCallback);
 
 String platformGetAuthToken();

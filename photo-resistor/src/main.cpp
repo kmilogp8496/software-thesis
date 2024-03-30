@@ -8,13 +8,6 @@ enum PINS {
   PHOTO_RESISTOR = 34,
 };
 
-hw_timer_t *Timer0_Cfg = NULL;
-
-void IRAM_ATTR Timer0_ISR()
-{
-    digitalWrite(PINS::TIMER_LED, !digitalRead(PINS::TIMER_LED));
-}
-
 void setup()
 {
 
@@ -50,24 +43,14 @@ void setup()
   pinMode(PINS::TIMER_LED, OUTPUT);
   pinMode(PINS::WEB_SOCKET_LED, OUTPUT);
 
-  Timer0_Cfg = timerBegin(0, 80, true);
-  timerAttachInterrupt(Timer0_Cfg, &Timer0_ISR, true);
-  timerAlarmWrite(Timer0_Cfg, 1000000, true);
-  timerAlarmEnable(Timer0_Cfg);
   
   platformLogin();
-  platformWebsocketsConnect();
+  platformWebsocketsConnect([](JsonDocument doc) {
+    float ledIllumination = doc["7"].as<float>();
+    analogWrite(PINS::WEB_SOCKET_LED, ledIllumination);
+  });
 }
 
 void loop()
 {
-  delay(2000);
-
-  uint16_t value = analogRead(PINS::PHOTO_RESISTOR);
-  int output = 256 - ((value + 1) / 16);
-
-  analogWrite(PINS::DELAY_LED, output);
-
-  Serial.println(String("Valor leido: ") + String(value));
-  Serial.println(String("Valor escrito: ") + String(output));
 }
