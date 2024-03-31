@@ -10,7 +10,7 @@
 #define WIFI_SSID ""
 #define WIFI_PASSWORD ""
 
-#define API_URL "easy-iot.netlify.app"
+#define API_URL "easy-iot.vercel.app"
 #define API_PORT 443
 
 #define AUTH_TOKEN_NAME "nuxt-session="
