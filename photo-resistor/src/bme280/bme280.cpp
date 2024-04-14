@@ -1,8 +1,7 @@
-#include <Arduino.h>
 #include "Environment.h"
-#include "IoTPlatformSensor.h"
+#include <Arduino.h>
 #include <ArduinoJson.h>
-#include "api/api.h"
+#include "PlatformApi.h"
 #include <Adafruit_BME280.h>
 
 #define REQUEST_INTERVAL 300000
@@ -32,6 +31,7 @@ void setup()
     
   }
 
+  Serial.println(String("Platform Sensor ") + String(SENSOR_NAME) + String(" started"));
   Serial.println(String("Connected to the WiFi network: ") + String(WIFI_SSID));
   Serial.println();
   Serial.println("WiFi connected");
@@ -51,7 +51,7 @@ void setup()
     ESP.restart();
   }
 
-  platformLogin();
+  platformLogin(SENSOR_ID, SENSOR_NAME, SENSOR_PASSWORD);
 }
 
 void loop()

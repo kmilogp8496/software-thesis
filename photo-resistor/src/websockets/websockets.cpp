@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "Api/Api.h"
+#include <PlatformApi.h>
 
 enum PINS {
   DELAY_LED = 13,
@@ -44,7 +44,7 @@ void setup()
   pinMode(PINS::WEB_SOCKET_LED, OUTPUT);
 
   
-  platformLogin();
+  platformLogin(SENSOR_ID, SENSOR_NAME, SENSOR_PASSWORD);
   platformWebsocketsConnect([](JsonDocument doc) {
     float ledIllumination = doc["7"].as<float>();
     analogWrite(PINS::WEB_SOCKET_LED, ledIllumination);

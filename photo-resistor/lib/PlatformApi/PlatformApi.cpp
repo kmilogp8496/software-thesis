@@ -1,4 +1,4 @@
-#include "Api.h"
+#include "PlatformApi.h"
 
 String authToken = "";
 
@@ -8,7 +8,7 @@ bool https = true;
 bool https = false;
 #endif
 
-void platformLogin()
+void platformLogin(int id, const char *username, const char *password)
 {
 #ifdef CA_CERTIFICATE
     WiFiClientSecure *client = new WiFiClientSecure;
@@ -28,9 +28,9 @@ void platformLogin()
             if (http.begin(*client, API_URL, API_PORT, "/api/things/login", https))
             { // HTTPS
                 JsonDocument doc;
-                doc["id"] = SENSOR_ID;
-                doc["username"] = SENSOR_NAME;
-                doc["password"] = SENSOR_PASSWORD;
+                doc["id"] = id;
+                doc["username"] = username;
+                doc["password"] = password;
                 const char *headers[] = {"Set-Cookie"};
                 http.collectHeaders(headers, sizeof(headers) / sizeof(headers[0]));
 
@@ -77,7 +77,7 @@ void handleResponse(HTTPClient *http, int httpResponseCode)
         {
             Serial.println("Unauthorized");
             http->end();
-            platformLogin();
+            platformLogin(SENSOR_ID, SENSOR_NAME, SENSOR_PASSWORD);
             return;
         }
 

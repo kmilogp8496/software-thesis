@@ -1,17 +1,22 @@
-#include "Api.h"
+#include <PlatformApi.h>
 #include <WebSocketsClient.h>
-
+#define USE_SERIAL Serial
 
 // callback function for handling messages as JSON
 void handleMessage(JsonDocument doc)
 {
 }
 
-HandleMessageCallback handleMessageCallback = handleMessage;
+HandleMessageCallback handleMessageCallback = NULL;
 
 WebSocketsClient webSocket;
 
-#define USE_SERIAL Serial
+void pushMessage(JsonDocument doc)
+{
+    String message;
+    serializeJson(doc, message);
+    webSocket.sendTXT(message);
+}
 
 void hexdump(const void *mem, uint32_t len, uint8_t cols = 16)
 {
@@ -44,7 +49,11 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
     case WStype_TEXT:
         USE_SERIAL.printf("[WSc] get text: %s\n", payload);
         deserializeJson(doc, payload);
-        handleMessageCallback(doc);
+
+        if (handleMessageCallback != NULL)
+        {
+            handleMessageCallback(doc);
+        }
 
         break;
     case WStype_BIN:
@@ -92,6 +101,7 @@ void websocketsLoop(void *pvParameters)
 void platformWebsocketsConnect(HandleMessageCallback handleMessageCb)
 {
     handleMessageCallback = handleMessageCb;
+
     openWebsocketsConnection();
 
     xTaskCreatePinnedToCore(
