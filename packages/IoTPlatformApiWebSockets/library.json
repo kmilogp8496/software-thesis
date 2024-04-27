@@ -1,0 +1,35 @@
+
+{
+    "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
+    "name": "IoT Platform API WebSockets",
+    "version": "0.0.7",
+    "description": "Library for connecting to https://iot.kmilo.dev via WebSockets",
+    "keywords": "iot, platform, api, kmilo, dev, esp32, websockets, http, https, secure, tls, ssl, realtime",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kmilogp8496/software-thesis.git"
+    },
+    "authors": [
+        {
+            "name": "Camilo González",
+            "email": "kmilogp8496@gmail.com",
+            "url": "https://kmilo.dev/"
+        }
+    ],
+    "license": "MIT",
+    "homepage": "https://iot.kmilo.dev/",
+    "frameworks": ["arduino"],
+    "platforms": ["espressif32"],
+    "dependencies": [
+        {
+            "owner": "kmilogp8496",
+            "name": "IoT Platform API",
+            "version": "^0.0.7"
+        },
+        {
+            "owner": "links2004",
+            "name": "WebSockets",
+            "version": "^2.4.1"
+        }
+    ]
+}

@@ -1,0 +1,29 @@
+{
+    "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
+    "name": "IoT Platform API",
+    "version": "0.0.7",
+    "description": "Library for connecting to https://iot.kmilo.dev",
+    "keywords": "iot, platform, api, kmilo, dev, esp32, https, secure, http, tls, ssl",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kmilogp8496/software-thesis.git"
+    },
+    "authors": [
+        {
+            "name": "Camilo González",
+            "email": "kmilogp8496@gmail.com",
+            "url": "https://kmilo.dev/"
+        }
+    ],
+    "license": "MIT",
+    "homepage": "https://iot.kmilo.dev/",
+    "frameworks": ["arduino"],
+    "platforms": ["espressif32"],
+    "dependencies": [
+        {
+            "owner": "bblanchon",
+            "name": "ArduinoJson",
+            "version": "^7.0.3"
+        }
+    ]
+}

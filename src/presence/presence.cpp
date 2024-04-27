@@ -1,6 +1,7 @@
 #include "Environment.h"
 #include <Arduino.h>
-#include <PlatformApi.h>
+#include <IoTPlatformApiWebsockets.h>
+#include <WiFiCredentials.h>
 
 enum PINS {
   SR_602 = 36,

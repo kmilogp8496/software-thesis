@@ -1,5 +1,5 @@
-#include <PlatformApi.h>
-#include <WebSocketsClient.h>
+#include <IoTPlatformApiWebsockets.h>
+
 #define USE_SERIAL Serial
 
 // callback function for handling messages as JSON

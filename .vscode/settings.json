@@ -1,3 +1,16 @@
 {
-    "cmake.sourceDirectory": "/home/kmilo/projects/escuela/software-thesis/.pio/libdeps/presence/ArduinoJson/src"
+    "cmake.sourceDirectory": "/home/kmilo/projects/escuela/software-thesis/.pio/libdeps/presence/ArduinoJson/src",
+    "files.associations": {
+        "*.page-template": "vue",
+        "*.layout-template": "vue",
+        "*.vue": "vue",
+        "array": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp"
+    }
 }

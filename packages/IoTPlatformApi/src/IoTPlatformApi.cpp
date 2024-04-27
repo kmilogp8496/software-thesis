@@ -1,4 +1,4 @@
-#include "PlatformApi.h"
+#include "IotPlatformApi.h"
 
 String authToken = "";
 
@@ -8,8 +8,16 @@ bool https = true;
 bool https = false;
 #endif
 
+int SENSOR_ID = 0;
+const char* SENSOR_NAME = "";
+const char* SENSOR_PASSWORD = ""; 
+
 void platformLogin(int id, const char *username, const char *password)
 {
+    SENSOR_ID = id;
+    SENSOR_NAME = username;
+    SENSOR_PASSWORD = password;
+
 #ifdef CA_CERTIFICATE
     WiFiClientSecure *client = new WiFiClientSecure;
 #else
@@ -28,9 +36,9 @@ void platformLogin(int id, const char *username, const char *password)
             if (http.begin(*client, API_URL, API_PORT, "/api/things/login", https))
             { // HTTPS
                 JsonDocument doc;
-                doc["id"] = id;
-                doc["username"] = username;
-                doc["password"] = password;
+                doc["id"] = SENSOR_ID;
+                doc["username"] = SENSOR_NAME;
+                doc["password"] = SENSOR_PASSWORD;
                 const char *headers[] = {"Set-Cookie"};
                 http.collectHeaders(headers, sizeof(headers) / sizeof(headers[0]));
 

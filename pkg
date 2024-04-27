@@ -1,0 +1,4 @@
+publish() {
+    pio pkg publish packages/IoTPlatformApiWebSockets
+    pio pkg publish packages/IoTPlatformApi
+}
