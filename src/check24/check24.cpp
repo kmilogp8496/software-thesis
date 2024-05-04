@@ -1,15 +1,16 @@
+#include "Environment.h"
 #include "IoTPlatformApiWebsockets.h"
 #include "WiFiCredentials.h"
 #include <DHT.h>
-#include "Environment.h"
+#include "CACertificate.h"
 
 #define REQUEST_INTERVAL 5000
 #define PRESENCE_THRESHOLD 5
 
 enum PINS
 {
-    PRESENCE_SENSOR = 0,
-    DHT_SENSOR = 4,
+    PRESENCE_SENSOR = 39,
+    DHT_SENSOR = 25,
     PHOTO_DIODE = 34
 };
 
@@ -34,7 +35,7 @@ void presenceTask(void *pvParameters)
             if (secondsOff >= PRESENCE_THRESHOLD - 1)
             {
                 doc[SENSOR_CONFIGURATION_BACKOFFICE_PRESENCIA_FOR_VARIABLE_PRESENCIA_AT_LOCATION_BACKOFFICE] = current;
-                pushMessage(doc);
+                platformPushMessage(doc);
             }
             secondsOff = 0;
         }
@@ -48,7 +49,7 @@ void presenceTask(void *pvParameters)
             {
                 secondsOff++;
                 doc[SENSOR_CONFIGURATION_BACKOFFICE_PRESENCIA_FOR_VARIABLE_PRESENCIA_AT_LOCATION_BACKOFFICE] = current;
-                pushMessage(doc);
+                platformPushMessage(doc);
             }
             else
             {
@@ -67,7 +68,6 @@ void setup()
     pinMode(PINS::PHOTO_DIODE, INPUT);
     Serial.println("Serial initialized");
     dht.begin();
-
 
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
@@ -95,23 +95,27 @@ void setup()
     Serial.println("IP address set: ");
     Serial.println(WiFi.localIP());
 
-    platformLogin(SENSOR_ID, SENSOR_NAME, SENSOR_PASSWORD);
+    platformSetCaCertificate(CA_CERTIFICATE);
 
-    platformWebsocketsConnect([](JsonDocument doc)
-                              {
-        String payload;
-        serializeJson(doc, payload);
-        Serial.println(payload); });
+    platformLogin(SENSOR_ID, SENSOR_NAME, SENSOR_PASSWORD, API_URL, API_PORT);
+
+    platformWebsocketsConnect(
+        [](JsonDocument doc)
+        {
+            String payload;
+            serializeJson(doc, payload);
+            Serial.println(payload);
+        });
 
     delay(5000);
 
     xTaskCreate(
-        presenceTask,   /* Function to implement the task */
-        "presenceTask", /* Name of the task */
-        10000,                 /* Stack size in words */
-        NULL,                  /* Task input parameter */
-        tskIDLE_PRIORITY,      /* Priority of the task */
-        &presenceTaskHandle);  /* Task handle. */
+        presenceTask,         /* Function to implement the task */
+        "presenceTask",       /* Name of the task */
+        10000,                /* Stack size in words */
+        NULL,                 /* Task input parameter */
+        tskIDLE_PRIORITY,     /* Priority of the task */
+        &presenceTaskHandle); /* Task handle. */
 }
 
 void loop()
@@ -122,6 +126,7 @@ void loop()
     if (isnan(humidity) || isnan(temperature))
     {
         Serial.println("Error obteniendo los datos del sensor DHT11");
+        delay(REQUEST_INTERVAL);
         return;
     }
 
@@ -129,7 +134,7 @@ void loop()
     doc[SENSOR_CONFIGURATION_BACKOFFICE_TEMPERATURA_FOR_VARIABLE_TEMPERATURA_AT_LOCATION_BACKOFFICE] = temperature;
     doc[SENSOR_CONFIGURATION_BACKOFFICE_HUMEDAD_FOR_VARIABLE_HUMEDAD_AT_LOCATION_BACKOFFICE] = humidity;
     doc[SENSOR_CONFIGURATION_BACKOFFICE_ILUMINACION_FOR_VARIABLE_ILUMINACION_AT_LOCATION_BACKOFFICE] = analogRead(PINS::PHOTO_DIODE);
-    pushMessage(doc);
+    platformPushMessage(doc);
 
     Serial.println("Temperatura: " + String(temperature) + "°C");
     Serial.println("Humedad: " + String(humidity) + "%");

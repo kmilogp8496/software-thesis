@@ -11,7 +11,7 @@ HandleMessageCallback handleMessageCallback = NULL;
 
 WebSocketsClient webSocket;
 
-void pushMessage(JsonDocument doc)
+void platformPushMessage(JsonDocument doc)
 {
     String message;
     serializeJson(doc, message);
@@ -79,11 +79,16 @@ void openWebsocketsConnection()
 
     webSocket.onEvent(webSocketEvent);
 
-#ifdef CA_CERTIFICATE
-    webSocket.beginSslWithCA(API_URL, API_PORT, "/_ws", CA_CERTIFICATE);
-#else
-    webSocket.begin(API_URL, API_PORT, "/_ws");
-#endif
+    const char *caCertificate = platformGetCaCertificate();
+
+    if (caCertificate != "")
+    {
+        webSocket.beginSslWithCA(platformGetApiUrl(), platformGetApiPort(), "/_ws", caCertificate);
+    }
+    else
+    {
+        webSocket.begin(platformGetApiUrl(), platformGetApiPort(), "/_ws");   
+    }
 }
 
 TaskHandle_t websocketLoopTaskHandler;

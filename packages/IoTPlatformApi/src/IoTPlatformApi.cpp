@@ -9,31 +9,62 @@ bool https = false;
 #endif
 
 int SENSOR_ID = 0;
-const char* SENSOR_NAME = "";
-const char* SENSOR_PASSWORD = ""; 
+const char *SENSOR_NAME = "";
+const char *SENSOR_PASSWORD = "";
+const char *API_URL = "";
+int API_PORT = 443;
+const char *caCertificate = "";
 
-void platformLogin(int id, const char *username, const char *password)
+const char *platformGetApiUrl()
+{
+    return API_URL;
+}
+
+int platformGetApiPort()
+{
+    return API_PORT;
+}
+
+void platformSetCaCertificate(const char *certificate)
+{
+    caCertificate = certificate;
+}
+
+const char *platformGetCaCertificate()
+{
+    return caCertificate;
+}
+
+void platformLogin(int id, const char *username, const char *password, const char *url, int port)
 {
     SENSOR_ID = id;
     SENSOR_NAME = username;
     SENSOR_PASSWORD = password;
+    API_URL = url;
+    API_PORT = port;
 
-#ifdef CA_CERTIFICATE
-    WiFiClientSecure *client = new WiFiClientSecure;
-#else
     WiFiClient *client = new WiFiClient;
-#endif
+    bool https = false;
+
+    if (caCertificate != "")
+    {
+        client = new WiFiClientSecure;
+    }
+
     if (client)
     {
-#ifdef CA_CERTIFICATE
-        client->setCACert(CA_CERTIFICATE);
-#endif
+
+        if (caCertificate != "")
+        {
+            ((WiFiClientSecure *)client)->setCACert(caCertificate);
+            https = true;
+        }
 
         {
             // Add a scoping block for HTTPClient http to make sure it is destroyed before WiFiClientSecure *client is
             HTTPClient http;
 
-            if (http.begin(*client, API_URL, API_PORT, "/api/things/login", https))
+            if (http.begin(*client, platformGetApiUrl(), platformGetApiPort(), "/api/things/login", https))
             { // HTTPS
                 JsonDocument doc;
                 doc["id"] = SENSOR_ID;
@@ -70,6 +101,7 @@ void platformLogin(int id, const char *username, const char *password)
 
         delete client;
     }
+
     else
     {
         Serial.println("Unable to create client");
@@ -85,7 +117,7 @@ void handleResponse(HTTPClient *http, int httpResponseCode)
         {
             Serial.println("Unauthorized");
             http->end();
-            platformLogin(SENSOR_ID, SENSOR_NAME, SENSOR_PASSWORD);
+            platformLogin(SENSOR_ID, SENSOR_NAME, SENSOR_PASSWORD, platformGetApiUrl(), platformGetApiPort());
             return;
         }
 
@@ -106,17 +138,22 @@ void handleResponse(HTTPClient *http, int httpResponseCode)
 
 void sendGetRequest(String path)
 {
-#ifdef CA_CERTIFICATE
-    WiFiClientSecure *client = new WiFiClientSecure;
-#else
     WiFiClient *client = new WiFiClient;
-#endif
+    bool https = false;
+
+    if (caCertificate != "")
+    {
+        client = new WiFiClientSecure;
+    }
+
     if (client)
     {
 
-#ifdef CA_CERTIFICATE
-        client->setCACert(CA_CERTIFICATE);
-#endif
+        if (caCertificate != "")
+        {
+            ((WiFiClientSecure *)client)->setCACert(caCertificate);
+            https = true;
+        }
 
         {
             HTTPClient http;
@@ -138,17 +175,22 @@ void sendGetRequest(String path)
 
 void sendPostRequest(String path, JsonDocument &doc)
 {
-#ifdef CA_CERTIFICATE
-    WiFiClientSecure *client = new WiFiClientSecure;
-#else
+
     WiFiClient *client = new WiFiClient;
-#endif
+    bool https = false;
+
+    if (caCertificate != "")
+    {
+        client = new WiFiClientSecure;
+    }
     if (client)
     {
 
-#ifdef CA_CERTIFICATE
-        client->setCACert(CA_CERTIFICATE);
-#endif
+        if (caCertificate != "")
+        {
+            ((WiFiClientSecure *)client)->setCACert(caCertificate);
+            https = true;
+        }
 
         {
             HTTPClient http;

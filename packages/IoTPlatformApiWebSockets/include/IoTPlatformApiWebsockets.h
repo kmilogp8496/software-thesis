@@ -3,4 +3,4 @@
 
 void platformWebsocketsConnect(HandleMessageCallback);
 
-void pushMessage(JsonDocument doc);
+void platformPushMessage(JsonDocument doc);
