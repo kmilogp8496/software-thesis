@@ -2,7 +2,7 @@
 {
     "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
     "name": "IoT Platform API WebSockets",
-    "version": "0.0.12",
+    "version": "0.0.13",
     "description": "Library for connecting to https://iot.kmilo.dev via WebSockets",
     "keywords": "iot, platform, api, kmilo, dev, esp32, websockets, http, https, secure, tls, ssl, realtime",
     "repository": {
@@ -24,7 +24,7 @@
         {
             "owner": "kmilogp8496",
             "name": "IoT Platform API",
-            "version": "^0.0.13"
+            "version": "^0.0.14"
         },
         {
             "owner": "links2004",

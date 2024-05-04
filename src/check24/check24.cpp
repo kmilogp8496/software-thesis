@@ -4,8 +4,8 @@
 #include <DHT.h>
 #include "CACertificate.h"
 
-#define REQUEST_INTERVAL 5000
-#define PRESENCE_THRESHOLD 5
+#define REQUEST_INTERVAL 60000
+#define PRESENCE_THRESHOLD 60
 
 enum PINS
 {
@@ -26,9 +26,6 @@ void presenceTask(void *pvParameters)
     {
         delay(1000);
         current = digitalRead(PINS::PRESENCE_SENSOR);
-
-        Serial.println("Presence: " + String(current));
-        Serial.println("Seconds off: " + String(secondsOff));
 
         if (current == HIGH && last == LOW)
         {
@@ -66,7 +63,6 @@ void setup()
     Serial.begin(921600);
     pinMode(PINS::PRESENCE_SENSOR, INPUT);
     pinMode(PINS::PHOTO_DIODE, INPUT);
-    Serial.println("Serial initialized");
     dht.begin();
 
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -90,10 +86,6 @@ void setup()
     }
 
     Serial.println(String("Connected to the WiFi network: ") + String(WIFI_SSID));
-    Serial.println();
-    Serial.println("WiFi connected");
-    Serial.println("IP address set: ");
-    Serial.println(WiFi.localIP());
 
     platformSetCaCertificate(CA_CERTIFICATE);
 
@@ -135,10 +127,6 @@ void loop()
     doc[SENSOR_CONFIGURATION_BACKOFFICE_HUMEDAD_FOR_VARIABLE_HUMEDAD_AT_LOCATION_BACKOFFICE] = humidity;
     doc[SENSOR_CONFIGURATION_BACKOFFICE_ILUMINACION_FOR_VARIABLE_ILUMINACION_AT_LOCATION_BACKOFFICE] = analogRead(PINS::PHOTO_DIODE);
     platformPushMessage(doc);
-
-    Serial.println("Temperatura: " + String(temperature) + "°C");
-    Serial.println("Humedad: " + String(humidity) + "%");
-    Serial.println("Iluminación: " + String(analogRead(PINS::PHOTO_DIODE)));
 
     delay(REQUEST_INTERVAL);
 }
