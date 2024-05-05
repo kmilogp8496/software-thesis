@@ -1,18 +1,17 @@
+#include "IotPlatformApi.h"
+#include "Adafruit_BME280.h"
 #include "Environment.h"
-#include <Arduino.h>
-#include <ArduinoJson.h>
-#include "PlatformApi.h"
-#include <Adafruit_BME280.h>
+#include "WiFiCredentials.h"
+#include "CACertificate.h"
 
-#define REQUEST_INTERVAL 300000
+#define REQUEST_INTERVAL 300000 // 5 minutes
 
-Adafruit_BME280 bme; // I2C
+Adafruit_BME280 bme;
 
 void setup()
 {
   Serial.begin(921600);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-
 
   for (size_t i = 0; i < 60; i++)
   {
@@ -31,17 +30,12 @@ void setup()
     
   }
 
-  Serial.println(String("Platform Sensor ") + String(SENSOR_NAME) + String(" started"));
   Serial.println(String("Connected to the WiFi network: ") + String(WIFI_SSID));
   Serial.println();
   Serial.println("WiFi connected");
-  Serial.println("IP address set: ");
-  Serial.println(WiFi.localIP());
 
   bool status;
 
-  // default settings
-  // (you can also pass in a Wire library object like &Wire2)
   status = bme.begin(0x76);
   if (!status)
   {
@@ -51,15 +45,16 @@ void setup()
     ESP.restart();
   }
 
-  platformLogin(SENSOR_ID, SENSOR_NAME, SENSOR_PASSWORD);
+  platformSetCaCertificate(CA_CERTIFICATE);
+  platformLogin(SENSOR_ID, SENSOR_NAME, SENSOR_PASSWORD, API_URL, API_PORT);
 }
 
 void loop()
 {
   JsonDocument doc;
-  doc[SENSOR_TEMPERATURA_TEMPERATURA_SALON] = bme.readTemperature();
-  doc[SENSOR_HUMEDAD_HUMEDAD_SALON] = bme.readHumidity();
-  doc[SENSOR_PRESION_PRESION_SALON] = bme.readPressure() / 100.0F;
+  doc[SENSOR_CONFIGURATION_TEMPERATURA_FOR_VARIABLE_TEMPERATURA_AT_LOCATION_SALON] = bme.readTemperature();
+  doc[SENSOR_CONFIGURATION_HUMEDAD_FOR_VARIABLE_HUMEDAD_AT_LOCATION_SALON] = bme.readHumidity();
+  doc[SENSOR_CONFIGURATION_PRESION_FOR_VARIABLE_PRESION_AT_LOCATION_SALON] = bme.readPressure() / 100.0F;
 
   platformPushData(doc);
 
