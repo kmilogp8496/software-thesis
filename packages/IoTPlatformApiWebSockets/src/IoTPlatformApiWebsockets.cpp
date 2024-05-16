@@ -11,13 +11,6 @@ HandleMessageCallback handleMessageCallback = NULL;
 
 WebSocketsClient webSocket;
 
-void platformPushMessage(JsonDocument doc)
-{
-    String message;
-    serializeJson(doc, message);
-    webSocket.sendTXT(message);
-}
-
 void hexdump(const void *mem, uint32_t len, uint8_t cols = 16)
 {
     const uint8_t *src = (const uint8_t *)mem;
@@ -62,6 +55,7 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
 
         break;
     case WStype_ERROR:
+        hexdump(payload, length);
     case WStype_FRAGMENT_TEXT_START:
     case WStype_FRAGMENT_BIN_START:
     case WStype_FRAGMENT:
@@ -72,7 +66,7 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
 
 void openWebsocketsConnection()
 {
-    webSocket.setReconnectInterval(2000);
+    webSocket.setReconnectInterval(1000);
 
     String cookieHeader = "Cookie: " + String(AUTH_TOKEN_NAME) + platformGetAuthToken();
     webSocket.setExtraHeaders(cookieHeader.c_str());
@@ -87,7 +81,7 @@ void openWebsocketsConnection()
     }
     else
     {
-        webSocket.begin(platformGetApiUrl(), platformGetApiPort(), "/_ws");   
+        webSocket.begin(platformGetApiUrl(), platformGetApiPort(), "/_ws");
     }
 }
 
@@ -117,4 +111,29 @@ void platformWebsocketsConnect(HandleMessageCallback handleMessageCb)
         tskIDLE_PRIORITY,           /* priority of the task */
         &websocketLoopTaskHandler,  /* Task handle to keep track of created task */
         0);                         /* pin task to core 0 */
+}
+
+
+void platformPushMessage(JsonDocument doc)
+{
+    String message;
+    serializeJson(doc, message);
+
+    int disconnected = 0;
+
+    while (webSocket.isConnected() == false)
+    {
+        USE_SERIAL.println("Waiting for connection for sending messages...");
+        delay(500);
+        disconnected++;
+
+        if (disconnected > 10)
+        {
+            webSocket.disconnect();
+            openWebsocketsConnection();
+            disconnected = 0;
+        }
+    }
+
+    webSocket.sendTXT(message);
 }

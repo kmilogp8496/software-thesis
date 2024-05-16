@@ -5,7 +5,7 @@
 #include "CACertificate.h"
 
 #define REQUEST_INTERVAL 60000
-#define PRESENCE_THRESHOLD 60
+#define PRESENCE_THRESHOLD 600
 
 enum PINS
 {
