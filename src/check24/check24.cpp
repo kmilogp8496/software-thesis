@@ -20,7 +20,8 @@ TaskHandle_t presenceTaskHandle;
 
 void presenceTask(void *pvParameters)
 {
-    uint8_t current, last = LOW, secondsOff = 0;
+    uint8_t current, last = LOW;
+    uint16_t secondsOff = 0;
     JsonDocument doc;
     for (;;)
     {
