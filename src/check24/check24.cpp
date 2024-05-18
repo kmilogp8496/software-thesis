@@ -43,16 +43,12 @@ void presenceTask(void *pvParameters)
             {
                 continue;
             }
-            else if (secondsOff == (PRESENCE_THRESHOLD - 1))
+            if (secondsOff == (PRESENCE_THRESHOLD - 1))
             {
-                secondsOff++;
                 doc[SENSOR_CONFIGURATION_BACKOFFICE_PRESENCIA_FOR_VARIABLE_PRESENCIA_AT_LOCATION_BACKOFFICE] = current;
                 platformPushMessage(doc);
             }
-            else
-            {
-                secondsOff++;
-            }
+            secondsOff++;
         }
 
         last = current;
