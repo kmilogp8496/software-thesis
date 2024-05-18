@@ -67,6 +67,7 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
 void openWebsocketsConnection()
 {
     webSocket.setReconnectInterval(1000);
+    webSocket.enableHeartbeat(15000, 3000, 2);
 
     String cookieHeader = "Cookie: " + String(AUTH_TOKEN_NAME) + platformGetAuthToken();
     webSocket.setExtraHeaders(cookieHeader.c_str());
