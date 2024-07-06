@@ -128,7 +128,7 @@ void platformPushMessage(JsonDocument doc)
         delay(500);
         disconnected++;
 
-        if (disconnected > 10)
+        if (disconnected > 60)
         {
             webSocket.disconnect();
             openWebsocketsConnection();
